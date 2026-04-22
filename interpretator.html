@@ -1,0 +1,189 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Интерпретатор Python — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Edu<span>TJ</span></a>
+  <div class="nav-links">
+    <a href="/pupil">← Кабинет</a>
+    <span style="color:#64748b;font-size:.85rem;">💻 Python Interpreter</span>
+    <a href="/logout" style="color:#f87171">Баромад</a>
+  </div>
+</nav>
+
+<div style="max-width:900px;margin:2rem auto;padding:0 1rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1.5rem;">
+    <div>
+      <h1 style="font-size:1.5rem;font-weight:800;">💻 Интерпретатори Python</h1>
+      <p style="color:var(--muted);font-size:.875rem;">Кодро нависед ва дар браузер иҷро кунед</p>
+    </div>
+    <div style="display:flex;gap:.75rem;">
+      <button onclick="runCode()" class="btn btn-green" id="run-btn">▶ Иҷро кардан</button>
+      <button onclick="clearCode()" class="btn btn-ghost">🗑 Тоза кардан</button>
+    </div>
+  </div>
+
+  <!-- Examples -->
+  <div style="display:flex;gap:.5rem;flex-wrap:wrap;margin-bottom:1rem;">
+    <button class="btn btn-ghost btn-sm" onclick="setExample('hello')">Салом Ҷаҳон</button>
+    <button class="btn btn-ghost btn-sm" onclick="setExample('loop')">Давра</button>
+    <button class="btn btn-ghost btn-sm" onclick="setExample('func')">Функсия</button>
+    <button class="btn btn-ghost btn-sm" onclick="setExample('list')">Рӯйхат</button>
+    <button class="btn btn-ghost btn-sm" onclick="setExample('calc')">Ҳисобкунак</button>
+  </div>
+
+  <div class="editor-wrap">
+    <div class="editor-toolbar">
+      <span>🐍 Python 3</span>
+      <span style="margin-left:auto;font-size:.75rem;opacity:.6;">Ctrl+Enter — иҷро</span>
+    </div>
+    <textarea class="code-area" id="code-editor" spellcheck="false" placeholder="# Кодатонро ин ҷо нависед
+print('Салом, Ҷаҳон!')"></textarea>
+    <div style="background:#0f172a;padding:.5rem 1rem;display:flex;align-items:center;justify-content:space-between;">
+      <span style="color:#64748b;font-size:.75rem;">Натиҷа:</span>
+      <button onclick="clearOutput()" style="background:none;border:none;color:#64748b;cursor:pointer;font-size:.75rem;">Тоза</button>
+    </div>
+    <div class="output-box" id="output">Натиҷа ин ҷо нишон дода мешавад...</div>
+  </div>
+
+  <!-- Tips -->
+  <div style="background:#fff;border-radius:14px;padding:1.25rem;border:1px solid var(--border);margin-top:1.5rem;">
+    <h3 style="font-weight:800;margin-bottom:1rem;">💡 Маслиҳатҳо</h3>
+    <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:1rem;font-size:.875rem;color:var(--muted);">
+      <div><code style="color:var(--primary);">print()</code> — чоп кардан</div>
+      <div><code style="color:var(--primary);">input()</code> — гирифтани маълумот</div>
+      <div><code style="color:var(--primary);">len()</code> — дарозии рӯйхат</div>
+      <div><code style="color:var(--primary);">range()</code> — диапазон</div>
+      <div><code style="color:var(--primary);">for i in range(5):</code> — давра</div>
+      <div><code style="color:var(--primary);">def func():</code> — функсия</div>
+    </div>
+  </div>
+</div>
+
+<script>
+const examples = {
+  hello: `# Салом ба ҷаҳон!
+print("Салом, Ҷаҳон!")
+print("Ман Python омӯхта истодаам!")`,
+  loop: `# Давраи for
+for i in range(1, 6):
+    print(f"Адад: {i}")
+    
+# Давраи while
+n = 0
+while n < 3:
+    print(f"While: {n}")
+    n += 1`,
+  func: `# Функсия
+def salamgo(nom):
+    return f"Салом, {nom}!"
+
+# Истифода
+print(salamgo("Алӣ"))
+print(salamgo("Малика"))
+
+# Функсия бо якчанд параметр
+def ҳисоб(a, b):
+    return a + b
+
+натиҷа = ҳисоб(15, 27)
+print(f"15 + 27 = {натиҷа}")`,
+  list: `# Рӯйхат (List)
+мевахо = ["себ", "афлесун", "ток"]
+print("Мевахо:", мевахо)
+print("Аввалин:", мевахо[0])
+
+# Илова кардан
+мевахо.append("анор")
+print("Баъд аз илова:", мевахо)
+
+# Тавассути давра
+for мева in мевахо:
+    print(f"🍎 {мева}")`,
+  calc: `# Ҳисобкунак
+def ҳисоб(а, б, амал):
+    if амал == "+":
+        return а + б
+    elif амал == "-":
+        return а - б
+    elif амал == "*":
+        return а * б
+    elif амал == "/":
+        return а / б if б != 0 else "Тақсим ба нол!"
+
+print(ҳисоб(10, 5, "+"))  # 15
+print(ҳисоб(10, 5, "-"))  # 5
+print(ҳисоб(10, 5, "*"))  # 50
+print(ҳисоб(10, 5, "/"))  # 2.0`
+};
+
+function setExample(key) {
+  document.getElementById('code-editor').value = examples[key];
+}
+
+async function runCode() {
+  const code = document.getElementById('code-editor').value;
+  const btn = document.getElementById('run-btn');
+  const out = document.getElementById('output');
+  
+  btn.textContent = '⏳ Иҷро...';
+  btn.disabled = true;
+  out.className = 'output-box';
+  out.textContent = 'Иҷро карда истодаем...';
+  
+  try {
+    const res = await fetch('/run_code', {
+      method: 'POST',
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify({code})
+    });
+    const data = await res.json();
+    
+    if (data.error) {
+      out.className = 'output-box output-error';
+      out.textContent = data.error;
+    } else {
+      out.className = 'output-box';
+      out.textContent = data.output || '(Натиҷае нест)';
+    }
+  } catch(e) {
+    out.className = 'output-box output-error';
+    out.textContent = 'Хато: ' + e.message;
+  }
+  
+  btn.textContent = '▶ Иҷро кардан';
+  btn.disabled = false;
+}
+
+function clearCode() {
+  document.getElementById('code-editor').value = '';
+}
+function clearOutput() {
+  document.getElementById('output').textContent = '';
+  document.getElementById('output').className = 'output-box';
+}
+
+// Ctrl+Enter to run
+document.getElementById('code-editor').addEventListener('keydown', e => {
+  if ((e.ctrlKey || e.metaKey) && e.key === 'Enter') {
+    e.preventDefault();
+    runCode();
+  }
+  // Tab support
+  if (e.key === 'Tab') {
+    e.preventDefault();
+    const start = e.target.selectionStart;
+    const end = e.target.selectionEnd;
+    e.target.value = e.target.value.substring(0,start) + '    ' + e.target.value.substring(end);
+    e.target.selectionStart = e.target.selectionEnd = start + 4;
+  }
+});
+</script>
+</body>
+</html>

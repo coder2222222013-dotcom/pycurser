@@ -1,0 +1,371 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Администратор — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="{{ 'dark-theme' if session.dark else '' }}">
+
+<nav class="nav">
+  <a href="/admin" class="nav-logo">Edu<span>TJ</span> <span style="font-size:.7rem;color:#f59e0b;font-weight:400;">Admin</span></a>
+  <div class="nav-links">
+    <a href="/admin">⚙️ Панел</a>
+    <a href="/toggle_dark">{{ '☀️' if session.dark else '🌙' }}</a>
+    <a href="/logout" style="color:#f87171">Баромад</a>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div style="padding:.5rem .75rem 1rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:.5rem;">
+      <div style="font-weight:800;color:#fff;">Администратор</div>
+      <div style="font-size:.7rem;color:#f59e0b;">⚡ Панели идоракунӣ</div>
+    </div>
+    <span class="sidebar-title">Асосӣ</span>
+    <a href="/admin"><span class="icon">📊</span> Дашборд</a>
+    <span class="sidebar-title">Контент</span>
+    <a href="#courses" onclick="showS('s-courses')"><span class="icon">📚</span> Курсҳо</a>
+    <a href="/admin/submissions"><span class="icon">📤</span> Вазифаҳо</a>
+    <span class="sidebar-title">Корбарон</span>
+    <a href="#users" onclick="showS('s-users')"><span class="icon">👥</span> Корбарон</a>
+    <span class="sidebar-title">Ҷадвал</span>
+    <a href="#schedule" onclick="showS('s-schedule')"><span class="icon">📅</span> Ҷадвал</a>
+    <span class="sidebar-title">Огоҳинома</span>
+    <a href="#notify" onclick="showS('s-notify')"><span class="icon">🔔</span> Огоҳинома</a>
+    <a href="/logout" style="margin-top:auto;"><span class="icon">🚪</span> Баромад</a>
+  </aside>
+
+  <main class="main-content">
+
+  {% if view == 'lessons' %}
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;">
+    <a href="/admin" class="btn btn-ghost btn-sm">← Панел</a>
+    <h1 style="font-size:1.4rem;font-weight:800;">Дарсҳои: {{ course.title }}</h1>
+    <button onclick="openModal('m-lesson')" class="btn btn-blue" style="margin-left:auto;">+ Дарси нав</button>
+  </div>
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>#</th><th>Дарс</th><th>Видео</th><th>Амал</th></tr></thead>
+      <tbody>
+        {% for l in lessons %}
+        <tr>
+          <td>{{ loop.index }}</td>
+          <td><strong>{{ l.title }}</strong>{% if l.description %}<br><small style="color:var(--muted)">{{ l.description[:50] }}</small>{% endif %}</td>
+          <td>{% if l.video_url %}<span class="badge badge-green">✓</span>{% else %}<span class="badge badge-red">Нест</span>{% endif %}</td>
+          <td style="display:flex;gap:.4rem;">
+            <a href="/admin/tests/{{ l.id }}" class="btn btn-yellow btn-sm">📝 Тестҳо</a>
+            <a href="/admin/delete_lesson/{{ l.id }}" class="btn btn-red btn-sm" onclick="return confirm('Нест?')">🗑</a>
+          </td>
+        </tr>
+        {% else %}<tr><td colspan="4" style="text-align:center;padding:2rem;color:var(--muted);">Дарсе нест</td></tr>{% endfor %}
+      </tbody>
+    </table>
+  </div>
+  <div class="modal-overlay" id="m-lesson">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('m-lesson')">×</button>
+      <h2>📖 Дарси нав</h2>
+      <form method="POST" action="/admin/add_lesson" enctype="multipart/form-data">
+        <input type="hidden" name="course_id" value="{{ course.id }}">
+        <div class="form-group"><label>Ном *</label><input name="title" required></div>
+        <div class="form-group"><label>Тавсиф</label><textarea name="description"></textarea></div>
+        <div class="form-group"><label>Видеофайл (MP4)</label><input type="file" name="video" accept="video/*"></div>
+        <div class="form-group"><label>YouTube линк</label><input type="url" name="video_link" placeholder="https://youtube.com/watch?v=..."></div>
+        <div class="form-group"><label>Матн</label><textarea name="content" style="min-height:120px;"></textarea></div>
+        <button type="submit" class="btn btn-blue btn-full">+ Илова</button>
+      </form>
+    </div>
+  </div>
+
+  {% elif view == 'tests' %}
+  <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;">
+    <a href="/admin/lessons/{{ lesson.course_id }}" class="btn btn-ghost btn-sm">← Дарсҳо</a>
+    <div><h1 style="font-size:1.2rem;font-weight:800;">{{ lesson.title }}</h1><div style="font-size:.8rem;color:var(--muted);">{{ lesson.course_title }}</div></div>
+    <button onclick="openModal('m-test')" class="btn btn-blue" style="margin-left:auto;">+ Тести нав</button>
+  </div>
+  {% for test in tests %}
+  <div style="background:var(--card);border-radius:14px;padding:1.25rem;border:1px solid var(--border);margin-bottom:1rem;">
+    <h3 style="font-weight:800;">📝 {{ test.title }}</h3>
+  </div>
+  {% else %}<div class="alert alert-info">Тесте нест.</div>{% endfor %}
+  <div class="modal-overlay" id="m-test">
+    <div class="modal" style="max-width:700px;">
+      <button class="modal-close" onclick="closeModal('m-test')">×</button>
+      <h2>📝 Тести нав</h2>
+      <form method="POST" action="/admin/add_test" id="test-form">
+        <input type="hidden" name="lesson_id" value="{{ lesson.id }}">
+        <div class="form-group"><label>Ном *</label><input name="title" required></div>
+        <h3 style="margin-bottom:1rem;">Саволҳо</h3>
+        <div id="q-container"></div>
+        <button type="button" onclick="addQ()" class="btn btn-ghost" style="margin-bottom:1.25rem;">+ Савол</button>
+        <button type="submit" class="btn btn-blue btn-full">✓ Сохтан</button>
+      </form>
+    </div>
+  </div>
+
+  {% elif view == 'submissions' %}
+  <h1 style="font-size:1.4rem;font-weight:800;margin-bottom:1.5rem;">📤 Вазифаҳои фиристодашуда</h1>
+  {% if submissions %}
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Донишҷӯ</th><th>Вазифа</th><th>Файл</th><th>Сана</th><th>Баҳо</th><th>Амал</th></tr></thead>
+      <tbody>
+        {% for s in submissions %}
+        <tr>
+          <td><strong>{{ s.full_name }}</strong></td>
+          <td>{{ s.task_title }}</td>
+          <td>{% if s.filename %}<a href="/static/uploads/homework/{{ s.filename }}" target="_blank" class="btn btn-ghost btn-sm">⬇️ Зеро гиред</a>{% else %}—{% endif %}</td>
+          <td style="font-size:.8rem;color:var(--muted);">{{ s.submitted_at[:16] }}</td>
+          <td>{% if s.grade %}<span class="badge badge-green">{{ s.grade }}/100</span>{% else %}<span class="badge badge-yellow">Интизор</span>{% endif %}</td>
+          <td>
+            <button onclick="openGrade({{ s.id }})" class="btn btn-blue btn-sm">✏️ Баҳо</button>
+          </td>
+        </tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+  {% else %}<div class="alert alert-info">Ҳанӯз вазифае фиристода нашудааст.</div>{% endif %}
+
+  <!-- Grade Modal -->
+  <div class="modal-overlay" id="m-grade">
+    <div class="modal" style="max-width:400px;">
+      <button class="modal-close" onclick="closeModal('m-grade')">×</button>
+      <h2>✏️ Баҳогузорӣ</h2>
+      <form method="POST" id="grade-form">
+        <div class="form-group"><label>Баҳо (0-100)</label><input type="number" name="grade" min="0" max="100" required></div>
+        <div class="form-group"><label>Фикри устод</label><textarea name="feedback" placeholder="Шарҳ..."></textarea></div>
+        <button type="submit" class="btn btn-blue btn-full">✓ Сохтан</button>
+      </form>
+    </div>
+  </div>
+
+  {% else %}
+  <!-- MAIN DASHBOARD -->
+  <h1 style="font-size:1.6rem;font-weight:800;margin-bottom:.25rem;">Панели Идоракунӣ ⚙️</h1>
+  <p style="color:var(--muted);margin-bottom:2rem;">Хуш омадед!</p>
+
+  <div class="stats-row">
+    <div class="stat-card"><span class="stat-icon">📚</span><div class="stat-num">{{ courses|length }}</div><div class="stat-label">Курсҳо</div></div>
+    <div class="stat-card"><span class="stat-icon">👥</span><div class="stat-num">{{ users|length }}</div><div class="stat-label">Корбарон</div></div>
+    <div class="stat-card"><span class="stat-icon">📖</span><div class="stat-num">{{ lessons_count }}</div><div class="stat-label">Дарсҳо</div></div>
+    <div class="stat-card"><span class="stat-icon">📝</span><div class="stat-num">{{ tests_count }}</div><div class="stat-label">Тестҳо</div></div>
+    <div class="stat-card"><span class="stat-icon">📤</span><div class="stat-num">{{ hw_count }}</div><div class="stat-label">Вазифаҳо</div></div>
+  </div>
+
+  <!-- COURSES -->
+  <div id="s-courses" class="section-block">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <h2 style="font-size:1.2rem;font-weight:800;">📚 Курсҳо</h2>
+      <div style="display:flex;gap:.5rem;">
+        <button onclick="openModal('m-task')" class="btn btn-yellow btn-sm">+ Вазифа</button>
+        <button onclick="openModal('m-course')" class="btn btn-blue">+ Курс</button>
+      </div>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>#</th><th>Курс</th><th>Устод</th><th>Сатҳ</th><th>Амал</th></tr></thead>
+        <tbody>
+          {% for c in courses %}
+          <tr>
+            <td>{{ loop.index }}</td>
+            <td><strong>{{ c.title }}</strong></td>
+            <td>{{ c.instructor }}</td>
+            <td><span class="badge badge-blue">{{ c.level }}</span></td>
+            <td style="display:flex;gap:.4rem;flex-wrap:wrap;">
+              <a href="/admin/lessons/{{ c.id }}" class="btn btn-yellow btn-sm">📖 Дарсҳо</a>
+              <a href="/admin/delete_course/{{ c.id }}" class="btn btn-red btn-sm" onclick="return confirm('Нест?')">🗑</a>
+            </td>
+          </tr>
+          {% else %}<tr><td colspan="5" style="text-align:center;padding:2rem;color:var(--muted);">Курсе нест</td></tr>{% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- USERS -->
+  <div id="s-users" class="section-block" style="margin-top:2.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <h2 style="font-size:1.2rem;font-weight:800;">👥 Корбарон</h2>
+      <button onclick="openModal('m-user')" class="btn btn-green">+ Корбар</button>
+    </div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Ном</th><th>Логин</th><th>Нақш</th><th>XP</th><th>Амал</th></tr></thead>
+        <tbody>
+          {% for u in users %}
+          <tr>
+            <td><strong>{{ u.full_name }}</strong></td>
+            <td><code style="background:var(--bg);padding:.2rem .4rem;border-radius:4px;font-size:.8rem;">{{ u.username }}</code></td>
+            <td><span class="badge {% if u.role=='admin' %}badge-red{% else %}badge-blue{% endif %}">{{ u.role }}</span></td>
+            <td><strong style="color:var(--primary);">{{ u.xp or 0 }}</strong></td>
+            <td>{% if u.role!='admin' %}<a href="/admin/delete_user/{{ u.id }}" class="btn btn-red btn-sm" onclick="return confirm('Нест?')">🗑</a>{% endif %}</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- SCHEDULE -->
+  <div id="s-schedule" class="section-block" style="margin-top:2.5rem;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:1rem;">
+      <h2 style="font-size:1.2rem;font-weight:800;">📅 Ҷадвали дарсҳо</h2>
+      <button onclick="openModal('m-schedule')" class="btn btn-blue">+ Ҷадвал</button>
+    </div>
+    {% if schedule_events %}
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Унвон</th><th>Курс</th><th>Сана</th><th>Вақт</th><th>Амал</th></tr></thead>
+        <tbody>
+          {% for e in schedule_events %}
+          <tr>
+            <td><strong>{{ e.title }}</strong></td>
+            <td>{{ e.course_title or '—' }}</td>
+            <td>{{ e.scheduled_date }}</td>
+            <td>{{ e.scheduled_time }} ({{ e.duration_min }} дақ)</td>
+            <td><a href="/admin/delete_schedule/{{ e.id }}" class="btn btn-red btn-sm" onclick="return confirm('Нест?')">🗑</a></td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+    {% else %}<div class="alert alert-info">Ҷадвале нест.</div>{% endif %}
+  </div>
+
+  <!-- NOTIFY ALL -->
+  <div id="s-notify" class="section-block" style="margin-top:2.5rem;">
+    <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:1rem;">🔔 Огоҳинома ба ҳама</h2>
+    <div style="background:var(--card);border-radius:14px;padding:1.25rem;border:1px solid var(--border);">
+      <form method="POST" action="/admin/notify_all">
+        <div class="form-row">
+          <div class="form-group"><label>Унвон</label><input name="title" required placeholder="Огоҳиномаи муҳим!"></div>
+          <div class="form-group"><label>Навъ</label>
+            <select name="type"><option value="info">ℹ️ Маълумот</option><option value="success">✅ Муваффақият</option><option value="warning">⚠️ Огоҳинома</option></select>
+          </div>
+        </div>
+        <div class="form-group"><label>Матн</label><textarea name="message" required placeholder="Матни огоҳинома..."></textarea></div>
+        <button type="submit" class="btn btn-blue">🔔 Фиристодан ба ҳама</button>
+      </form>
+    </div>
+  </div>
+
+  <!-- MODALS -->
+  <div class="modal-overlay" id="m-course">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('m-course')">×</button>
+      <h2>📚 Курси нав</h2>
+      <form method="POST" action="/admin/add_course" enctype="multipart/form-data">
+        <div class="form-row">
+          <div class="form-group"><label>Ном *</label><input name="title" required></div>
+          <div class="form-group"><label>Устод *</label><input name="instructor" required></div>
+        </div>
+        <div class="form-group"><label>Тавсиф</label><textarea name="description"></textarea></div>
+        <div class="form-row">
+          <div class="form-group"><label>Муддат</label><input name="duration" placeholder="3 моҳ"></div>
+          <div class="form-group"><label>Сатҳ</label><select name="level"><option>Асосӣ</option><option>Миёна</option><option>Пешрафта</option></select></div>
+        </div>
+        <div class="form-group"><label>Тасвир</label><input type="file" name="image" accept="image/*"></div>
+        <button type="submit" class="btn btn-blue btn-full">+ Илова</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="m-user">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('m-user')">×</button>
+      <h2>👤 Корбари нав</h2>
+      <form method="POST" action="/admin/add_user">
+        <div class="form-group"><label>Ному насаб *</label><input name="full_name" required></div>
+        <div class="form-row">
+          <div class="form-group"><label>Логин *</label><input name="username" required></div>
+          <div class="form-group"><label>Парол *</label><input type="password" name="password" required></div>
+        </div>
+        <div class="form-group"><label>Нақш</label><select name="role"><option value="student">Донишҷӯ</option><option value="admin">Администратор</option></select></div>
+        <button type="submit" class="btn btn-green btn-full">+ Илова</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="m-schedule">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('m-schedule')">×</button>
+      <h2>📅 Ҷадвали нав</h2>
+      <form method="POST" action="/admin/add_schedule">
+        <div class="form-group"><label>Унвон *</label><input name="title" required placeholder="Дарси 1 — Муқаддима"></div>
+        <div class="form-group"><label>Курс</label>
+          <select name="course_id">
+            <option value="">— Интихоб кунед —</option>
+            {% for c in courses %}<option value="{{ c.id }}">{{ c.title }}</option>{% endfor %}
+          </select>
+        </div>
+        <div class="form-row">
+          <div class="form-group"><label>Сана *</label><input type="date" name="scheduled_date" required></div>
+          <div class="form-group"><label>Вақт</label><input type="time" name="scheduled_time" value="09:00"></div>
+        </div>
+        <div class="form-group"><label>Муддат (дақиқа)</label><input type="number" name="duration_min" value="60"></div>
+        <div class="form-group"><label>Шарҳ</label><textarea name="description"></textarea></div>
+        <button type="submit" class="btn btn-blue btn-full">+ Илова</button>
+      </form>
+    </div>
+  </div>
+
+  <div class="modal-overlay" id="m-task">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal('m-task')">×</button>
+      <h2>📋 Вазифаи нав</h2>
+      <form method="POST" action="/admin/add_task">
+        <div class="form-group"><label>Курс</label>
+          <select name="course_id">{% for c in courses %}<option value="{{ c.id }}">{{ c.title }}</option>{% endfor %}</select>
+        </div>
+        <div class="form-group"><label>Ном *</label><input name="title" required></div>
+        <div class="form-group"><label>Тавсиф</label><textarea name="description"></textarea></div>
+        <div class="form-group"><label>Коди намуна</label><textarea name="test_code" style="font-family:monospace;"></textarea></div>
+        <div class="form-group"><label>Мӯҳлат</label><input type="date" name="deadline"></div>
+        <button type="submit" class="btn btn-yellow btn-full">+ Илова</button>
+      </form>
+    </div>
+  </div>
+  {% endif %}
+  </main>
+</div>
+
+<script>
+function openModal(id) { document.getElementById(id).classList.add('active'); }
+function closeModal(id) { document.getElementById(id).classList.remove('active'); }
+document.querySelectorAll('.modal-overlay').forEach(m => {
+  m.addEventListener('click', function(e) { if(e.target===this) this.classList.remove('active'); });
+});
+function showS(id) { document.getElementById(id)?.scrollIntoView({behavior:'smooth'}); }
+
+function openGrade(id) {
+  document.getElementById('grade-form').action = '/admin/grade/'+id;
+  openModal('m-grade');
+}
+
+let qN=0;
+function addQ() {
+  qN++;
+  const c=document.getElementById('q-container');
+  const d=document.createElement('div'); d.className='question-item';
+  d.innerHTML=`<button type="button" class="remove-q" onclick="this.parentNode.remove()">✕</button>
+    <div class="form-group"><label>Савол ${qN}</label><input name="question[]" required></div>
+    <div class="form-row">
+      <div class="form-group"><label>А)</label><input name="opt_a[]" required></div>
+      <div class="form-group"><label>Б)</label><input name="opt_b[]" required></div>
+    </div>
+    <div class="form-row">
+      <div class="form-group"><label>В)</label><input name="opt_c[]"></div>
+      <div class="form-group"><label>Г)</label><input name="opt_d[]"></div>
+    </div>
+    <div class="form-group"><label>Ҷавоби дуруст</label>
+      <select name="correct[]"><option value="0">А)</option><option value="1">Б)</option><option value="2">В)</option><option value="3">Г)</option></select>
+    </div>`;
+  c.appendChild(d);
+}
+if(document.getElementById('q-container')) addQ();
+</script>
+</body>
+</html>

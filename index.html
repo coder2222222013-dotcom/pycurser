@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>EduTJ — Платформаи Омӯзишӣ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="{{ 'dark-theme' if session.dark else '' }}">
+
+<nav class="nav">
+  <div class="nav-logo">Edu<span>TJ</span></div>
+  <div class="nav-links">
+    <a href="/">{{ t('home') }}</a>
+    <a href="#courses">{{ t('courses') }}</a>
+    {% if session.user_id %}
+      <a href="/pupil">{{ t('cabinet') }}</a>
+      <a href="/notifications" style="position:relative;font-size:1.1rem;">🔔{% set uc=get_unread(session.user_id) %}{% if uc>0 %}<span class="notif-badge">{{uc}}</span>{% endif %}</a>
+      <a href="/toggle_dark">{{ '☀️' if session.dark else '🌙' }}</a>
+      <span style="display:flex;gap:.2rem;">
+        <a href="/set_lang/tg" class="btn btn-ghost btn-sm" style="{% if session.lang=='tg' %}background:var(--primary);color:#fff;{% endif %}">ТҶ</a>
+        <a href="/set_lang/ru" class="btn btn-ghost btn-sm" style="{% if session.lang=='ru' %}background:var(--primary);color:#fff;{% endif %}">РУ</a>
+        <a href="/set_lang/en" class="btn btn-ghost btn-sm" style="{% if session.lang=='en' %}background:var(--primary);color:#fff;{% endif %}">EN</a>
+      </span>
+      <a href="/logout" style="color:#f87171">{{ t('logout') }}</a>
+    {% else %}
+      <span style="display:flex;gap:.2rem;">
+        <a href="/set_lang/tg" class="btn btn-ghost btn-sm">ТҶ</a>
+        <a href="/set_lang/ru" class="btn btn-ghost btn-sm">РУ</a>
+        <a href="/set_lang/en" class="btn btn-ghost btn-sm">EN</a>
+      </span>
+      <a href="/login" class="btn-nav">{{ t('login') }} →</a>
+    {% endif %}
+  </div>
+</nav>
+
+<section class="hero">
+  <div class="hero-inner">
+    <h1 class="fade-up">Омӯзиши <span>ояндаи дурахшон</span><br>аз имрӯз оғоз мекунад</h1>
+    <p class="fade-up-2">Беҳтарин курсҳои онлайн бо устодони тоҷик. Омӯзед, санҷед, пеш равед!</p>
+    <div class="hero-btns fade-up-3">
+      {% if session.user_id %}
+        <a href="/pupil" class="btn-hero btn-primary">🚀 {{ t('cabinet') }}</a>
+        <a href="/schedule" class="btn-hero btn-outline">📅 {{ t('schedule') }}</a>
+      {% else %}
+        <a href="/login" class="btn-hero btn-primary">🚀 {{ t('login') }}</a>
+        <a href="#courses" class="btn-hero btn-outline">{{ t('courses') }}</a>
+      {% endif %}
+    </div>
+    <div class="hero-stats fade-up-3">
+      <div class="hero-stat"><strong>{{ courses|length }}+</strong><span>{{ t('courses') }}</span></div>
+      <div class="hero-stat"><strong>100%</strong><span>Онлайн</span></div>
+      <div class="hero-stat"><strong>🏆</strong><span>{{ t('certificate') }}</span></div>
+      <div class="hero-stat"><strong>24/7</strong><span>Дастрасӣ</span></div>
+    </div>
+  </div>
+</section>
+
+<section class="section" id="courses">
+  <div class="section-inner">
+    <h2 class="section-title">📚 {{ t('courses') }}</h2>
+    <div class="cards-grid">
+      {% for course in courses %}
+      <div class="course-card fade-up">
+        <div class="course-thumb">{% if course.image %}<img src="/static/uploads/images/{{ course.image }}" alt="">{% else %}🖥️{% endif %}</div>
+        <div class="course-body">
+          <span class="course-badge">{{ course.level }}</span>
+          <h3>{{ course.title }}</h3>
+          <p>{{ course.description[:100] if course.description else '' }}</p>
+          <div class="course-meta"><span>👨‍🏫 {{ course.instructor }}</span><span>⏱ {{ course.duration }}</span></div>
+          <a href="{% if session.user_id %}/enroll/{{ course.id }}{% else %}/login{% endif %}" class="btn btn-blue btn-full">📌 {{ t('enroll') }}</a>
+        </div>
+      </div>
+      {% else %}<div class="alert alert-info">Ҳанӯз курсе нест.</div>{% endfor %}
+    </div>
+  </div>
+</section>
+
+<section class="section features">
+  <div class="section-inner">
+    <h2 class="section-title">⚡ Имконоти платформа</h2>
+    <div class="features-grid">
+      <div class="feature-card"><div class="feature-icon">🎬</div><h4>Видеодарсҳо</h4><p>Дарсҳои пурсифат</p></div>
+      <div class="feature-card"><div class="feature-icon">📝</div><h4>Тестҳо</h4><p>Санҷиши дониш</p></div>
+      <div class="feature-card"><div class="feature-icon">💻</div><h4>{{ t('interpreter') }}</h4><p>Код дар браузер</p></div>
+      <div class="feature-card"><div class="feature-icon">🏆</div><h4>{{ t('certificate') }}</h4><p>Сертификати расмӣ</p></div>
+      <div class="feature-card"><div class="feature-icon">🔔</div><h4>{{ t('notifications') }}</h4><p>Огоҳиномаҳои фаврӣ</p></div>
+      <div class="feature-card"><div class="feature-icon">📅</div><h4>{{ t('schedule') }}</h4><p>Ҷадвали дарсҳо</p></div>
+      <div class="feature-card"><div class="feature-icon">📤</div><h4>{{ t('homework') }}</h4><p>Бор кардани вазифа</p></div>
+      <div class="feature-card"><div class="feature-icon">🌐</div><h4>3 забон</h4><p>ТҶ / РУ / EN</p></div>
+    </div>
+  </div>
+</section>
+
+{% if not session.user_id %}
+<section class="section" style="background:linear-gradient(135deg,#1a56db,#0ea5e9);color:#fff;text-align:center;">
+  <div class="section-inner">
+    <h2 style="font-size:2rem;margin-bottom:1rem;">Омодаед? 🚀</h2>
+    <a href="/login" class="btn-hero btn-primary">{{ t('login') }} →</a>
+  </div>
+</section>
+{% endif %}
+<footer><p>© 2024 <strong>EduTJ</strong> — Платформаи Омӯзишии Тоҷикистон</p></footer>
+</body>
+</html>

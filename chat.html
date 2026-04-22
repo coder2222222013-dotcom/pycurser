@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Чат — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Edu<span>TJ</span></a>
+  <div class="nav-links">
+    <a href="/pupil">← Кабинет</a>
+    <span style="color:#64748b;font-size:.85rem;">💬 Чати умумӣ</span>
+    <a href="/logout" style="color:#f87171">Баромад</a>
+  </div>
+</nav>
+
+<div style="max-width:800px;margin:2rem auto;padding:0 1rem;height:calc(100vh - 100px);display:flex;flex-direction:column;">
+  <h2 style="font-size:1.3rem;font-weight:800;margin-bottom:1rem;">💬 Чати умумӣ</h2>
+
+  <div class="chat-messages" id="chat-box">
+    {% for m in messages %}
+    <div>
+      <div class="msg-bubble {% if m.user_id == session.user_id %}me{% elif m.role == 'admin' %}other admin-msg{% else %}other{% endif %}">
+        {% if m.user_id != session.user_id %}
+        <div style="font-size:.75rem;font-weight:700;margin-bottom:.3rem;color:{% if m.role == 'admin' %}#92400e{% else %}var(--primary){% endif %};">
+          {% if m.role == 'admin' %}⚡ {% endif %}{{ m.full_name }}
+        </div>
+        {% endif %}
+        {{ m.message }}
+        <div class="msg-meta">{{ m.created_at[11:16] if m.created_at else '' }}</div>
+      </div>
+    </div>
+    {% else %}
+    <div style="text-align:center;color:var(--muted);padding:2rem;">Ҳанӯз паёме нест. Аввалин бошед! 👋</div>
+    {% endfor %}
+  </div>
+
+  <form method="POST" action="/send_message" class="chat-input">
+    <input name="message" placeholder="Паёмро нависед..." required autofocus autocomplete="off">
+    <button type="submit" class="btn btn-blue">Фиристодан →</button>
+  </form>
+</div>
+
+<script>
+// Auto-scroll to bottom
+const box = document.getElementById('chat-box');
+box.scrollTop = box.scrollHeight;
+
+// Auto-refresh every 5 seconds
+setInterval(() => {
+  fetch('/api/messages')
+    .then(r => r.json())
+    .then(msgs => {
+      // Simple refresh - reload if new messages
+      if (msgs.length > document.querySelectorAll('.msg-bubble').length) {
+        location.reload();
+      }
+    });
+}, 5000);
+</script>
+</body>
+</html>

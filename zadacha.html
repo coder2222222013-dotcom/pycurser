@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Вазифаҳо — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="{{ 'dark-theme' if session.dark else '' }}">
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Edu<span>TJ</span></a>
+  <div class="nav-links">
+    <a href="/pupil">← {{ t('cabinet') }}</a>
+    <a href="/interpretator">💻</a>
+    <a href="/notifications" style="position:relative;">🔔{% set uc=get_unread(session.user_id) %}{% if uc>0 %}<span class="notif-badge">{{uc}}</span>{% endif %}</a>
+    <a href="/toggle_dark">{{ '☀️' if session.dark else '🌙' }}</a>
+    <a href="/logout" style="color:#f87171">{{ t('logout') }}</a>
+  </div>
+</nav>
+
+<div style="max-width:900px;margin:2rem auto;padding:0 1rem;">
+  <div style="margin-bottom:2rem;">
+    <h1 style="font-size:1.6rem;font-weight:800;">📋 {{ t('homework') }}</h1>
+    <p style="color:var(--muted);">Машқҳои амалӣ барои омӯзиш</p>
+  </div>
+
+  {% if tasks %}
+  <div style="display:flex;flex-direction:column;gap:1.25rem;">
+    {% for task in tasks %}
+    {% set sub = my_subs.get(task.id) %}
+    <div style="background:var(--card);border-radius:16px;padding:1.5rem;border:1px solid {% if sub and sub.grade %}var(--success){% elif sub %}var(--accent){% else %}var(--border){% endif %};transition:.2s;">
+      <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:1rem;flex-wrap:wrap;">
+        <div style="flex:1">
+          <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:.75rem;">
+            <span style="background:var(--primary);color:#fff;width:36px;height:36px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">{{ loop.index }}</span>
+            <div>
+              <h3 style="font-size:1.05rem;font-weight:800;">{{ task.title }}</h3>
+              <div style="display:flex;gap:.4rem;flex-wrap:wrap;margin-top:.2rem;">
+                {% if task.course_title %}<span class="badge badge-blue">📚 {{ task.course_title }}</span>{% endif %}
+                {% if task.deadline %}<span class="badge badge-red">⏰ {{ task.deadline }}</span>{% endif %}
+              </div>
+            </div>
+          </div>
+          {% if task.description %}
+          <p style="color:var(--muted);line-height:1.7;margin-bottom:.75rem;white-space:pre-wrap;">{{ task.description }}</p>
+          {% endif %}
+          {% if task.test_code %}
+          <div class="editor-wrap" style="margin-bottom:.75rem;">
+            <div class="editor-toolbar"><span>💡 Намуна</span></div>
+            <pre style="background:#1e293b;color:#e2e8f0;font-family:'Fira Code',monospace;font-size:.8rem;padding:.85rem;margin:0;overflow-x:auto;border-radius:0 0 12px 12px;max-height:150px;">{{ task.test_code }}</pre>
+          </div>
+          {% endif %}
+          <!-- Status -->
+          {% if sub %}
+          <div style="background:{% if sub.grade %}var(--success){% else %}var(--accent){% endif %};color:#fff;border-radius:10px;padding:.6rem 1rem;font-size:.875rem;font-weight:700;display:inline-flex;align-items:center;gap:.5rem;">
+            {% if sub.grade %}✅ Баҳо: {{ sub.grade }}/100{% if sub.feedback %} — {{ sub.feedback }}{% endif %}{% else %}⏳ Фиристода шуд — интизор{% endif %}
+          </div>
+          {% endif %}
+        </div>
+        <div style="display:flex;flex-direction:column;gap:.5rem;flex-shrink:0;">
+          <a href="/homework/{{ task.id }}" class="btn {% if sub %}btn-ghost{% else %}btn-green{% endif %} btn-sm">
+            {% if sub %}🔄 Такрор{% else %}📤 {{ t('submit') }}{% endif %}
+          </a>
+          <a href="/interpretator" class="btn btn-ghost btn-sm">💻 Код</a>
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:4rem 2rem;background:var(--card);border-radius:16px;border:1px solid var(--border);">
+    <div style="font-size:4rem;margin-bottom:1rem;">📭</div>
+    <h2 style="font-weight:800;margin-bottom:.5rem;">Вазифае нест</h2>
+    <p style="color:var(--muted);margin-bottom:2rem;">Администратор вазифаҳоро илова мекунад</p>
+    <a href="/interpretator" class="btn btn-blue">💻 {{ t('interpreter') }}</a>
+  </div>
+  {% endif %}
+</div>
+</body>
+</html>

@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Вазифа — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body class="{{ 'dark-theme' if session.dark else '' }}">
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Edu<span>TJ</span></a>
+  <div class="nav-links">
+    <a href="/zadacha">← {{ t('homework') }}</a>
+    <a href="/logout" style="color:#f87171">{{ t('logout') }}</a>
+  </div>
+</nav>
+
+<div style="max-width:720px;margin:2rem auto;padding:0 1rem;">
+
+  <!-- Task Info -->
+  <div style="background:#fff;border-radius:16px;padding:1.5rem;border:1px solid var(--border);margin-bottom:1.5rem;">
+    <div style="display:flex;align-items:flex-start;gap:1rem;margin-bottom:1rem;">
+      <div style="width:48px;height:48px;border-radius:14px;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-size:1.5rem;flex-shrink:0;">📋</div>
+      <div>
+        {% if task.course_title %}<span class="badge badge-blue">{{ task.course_title }}</span>{% endif %}
+        <h1 style="font-size:1.3rem;font-weight:800;margin-top:.25rem;">{{ task.title }}</h1>
+      </div>
+    </div>
+    {% if task.description %}
+    <div style="background:var(--bg);border-radius:10px;padding:1rem;margin-bottom:1rem;line-height:1.7;white-space:pre-wrap;">{{ task.description }}</div>
+    {% endif %}
+    {% if task.test_code %}
+    <div class="editor-wrap">
+      <div class="editor-toolbar"><span>💡 Намуна / Мисол</span></div>
+      <pre style="background:#1e293b;color:#e2e8f0;font-family:'Fira Code',monospace;font-size:.85rem;padding:1rem;margin:0;overflow-x:auto;">{{ task.test_code }}</pre>
+    </div>
+    {% endif %}
+    {% if task.deadline %}
+    <div style="margin-top:1rem;color:var(--danger);font-weight:700;font-size:.875rem;">⏰ Мӯҳлат: {{ task.deadline }}</div>
+    {% endif %}
+  </div>
+
+  <!-- Submission Status -->
+  {% if my_sub %}
+  <div class="alert {% if my_sub.grade %}alert-success{% else %}alert-info{% endif %}" style="margin-bottom:1.5rem;">
+    {% if my_sub.grade %}
+    <strong>✅ Баҳо гирифт!</strong> Баҳои шумо: <strong>{{ my_sub.grade }}/100</strong>
+    {% if my_sub.feedback %}<br>💬 Фикри устод: {{ my_sub.feedback }}{% endif %}
+    {% else %}
+    <strong>⏳ Дар интизор.</strong> Вазифа {{ my_sub.submitted_at[:16] }} фиристода шуд. Устод баҳо медиҳад.
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <!-- Upload Form -->
+  <div style="background:#fff;border-radius:16px;padding:1.5rem;border:1px solid var(--border);">
+    <h2 style="font-size:1.1rem;font-weight:800;margin-bottom:1.25rem;">
+      {% if my_sub %}🔄 Такрор фиристодан{% else %}📤 Вазифаро фиристодан{% endif %}
+    </h2>
+    <form method="POST" enctype="multipart/form-data">
+      <div class="form-group">
+        <label>📁 Файли вазифа (py, txt, zip, pdf, jpg...)</label>
+        <input type="file" name="file" accept=".py,.txt,.zip,.pdf,.jpg,.jpeg,.png,.docx">
+        {% if my_sub and my_sub.filename %}
+        <div style="font-size:.8rem;color:var(--success);margin-top:.4rem;">✓ Фиристода шуд: {{ my_sub.filename }}</div>
+        {% endif %}
+      </div>
+      <div class="form-group">
+        <label>💬 Шарҳ (ихтиёрӣ)</label>
+        <textarea name="comment" placeholder="Дар бораи вазифаи иҷрошуда нависед...">{{ my_sub.comment if my_sub else '' }}</textarea>
+      </div>
+      <div style="display:flex;gap:.75rem;">
+        <button type="submit" class="btn btn-blue" style="flex:1;padding:.9rem;">📤 {{ t('submit') }}</button>
+        <a href="/zadacha" class="btn btn-ghost">{{ t('cancel') }}</a>
+      </div>
+    </form>
+
+    {% if my_sub and my_sub.filename %}
+    <div style="margin-top:1.25rem;padding-top:1.25rem;border-top:1px solid var(--border);">
+      <a href="/static/uploads/homework/{{ my_sub.filename }}" target="_blank" class="btn btn-ghost btn-sm">
+        ⬇️ Файли фиристодашударо зеро гиред
+      </a>
+    </div>
+    {% endif %}
+  </div>
+
+  <!-- Open in Interpreter -->
+  <div style="margin-top:1rem;text-align:center;">
+    <a href="/interpretator" class="btn btn-ghost">💻 Кодро дар Интерпретатор нависед</a>
+  </div>
+</div>
+</body>
+</html>

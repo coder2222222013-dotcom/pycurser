@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Ҷадвали Дарсҳо — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+.calendar-grid { display:grid; grid-template-columns:repeat(7,1fr); gap:4px; margin-bottom:2rem; }
+.cal-head { text-align:center; font-size:.75rem; font-weight:700; color:var(--muted); padding:.5rem 0; text-transform:uppercase; }
+.cal-day { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:10px; font-size:.85rem; font-weight:600; cursor:default; position:relative; border:1px solid transparent; }
+.cal-day.has-event { background:var(--primary); color:#fff !important; }
+.cal-day.today { border:2px solid var(--accent); }
+.cal-day.other-month { opacity:.3; }
+.event-card { background:#fff; border-radius:14px; padding:1.1rem 1.25rem; border:1px solid var(--border); border-left:4px solid var(--primary); display:flex; align-items:flex-start; gap:1rem; }
+.event-time { background:var(--primary); color:#fff; border-radius:10px; padding:.5rem .75rem; text-align:center; font-weight:800; font-size:.9rem; white-space:nowrap; flex-shrink:0; }
+.timeline { position:relative; }
+.timeline::before { content:''; position:absolute; left:20px; top:0; bottom:0; width:2px; background:var(--border); }
+.tl-item { position:relative; padding-left:50px; margin-bottom:1.5rem; }
+.tl-dot { position:absolute; left:12px; top:12px; width:18px; height:18px; border-radius:50%; background:var(--primary); border:3px solid #fff; box-shadow:0 0 0 2px var(--primary); }
+</style>
+</head>
+<body class="{{ 'dark-theme' if session.dark else '' }}">
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Edu<span>TJ</span></a>
+  <div class="nav-links">
+    <a href="/pupil">← {{ t('cabinet') }}</a>
+    <a href="/toggle_dark">{{ '☀️' if session.dark else '🌙' }}</a>
+    <div style="display:flex;gap:.25rem;">
+      <a href="/set_lang/tg" class="btn btn-ghost btn-sm {% if session.lang=='tg' %}btn-blue{% endif %}">ТҶ</a>
+      <a href="/set_lang/ru" class="btn btn-ghost btn-sm {% if session.lang=='ru' %}btn-blue{% endif %}">РУ</a>
+      <a href="/set_lang/en" class="btn btn-ghost btn-sm {% if session.lang=='en' %}btn-blue{% endif %}">EN</a>
+    </div>
+    <a href="/logout" style="color:#f87171">{{ t('logout') }}</a>
+  </div>
+</nav>
+
+<div style="max-width:900px;margin:2rem auto;padding:0 1rem;">
+  <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2rem;">
+    <div>
+      <h1 style="font-size:1.6rem;font-weight:800;">📅 {{ t('schedule') }}</h1>
+      <p style="color:var(--muted);">Ҷадвали дарсҳои оянда</p>
+    </div>
+  </div>
+
+  <!-- Mini Calendar -->
+  <div style="background:#fff;border-radius:16px;padding:1.5rem;border:1px solid var(--border);margin-bottom:2rem;">
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:1rem;">
+      <h3 id="cal-month" style="font-weight:800;font-size:1.1rem;"></h3>
+      <div style="display:flex;gap:.5rem;">
+        <button onclick="prevMonth()" class="btn btn-ghost btn-sm">◀</button>
+        <button onclick="nextMonth()" class="btn btn-ghost btn-sm">▶</button>
+      </div>
+    </div>
+    <div class="calendar-grid" id="cal-grid"></div>
+  </div>
+
+  <!-- Event Days -->
+  {% set event_dates = events | map(attribute='scheduled_date') | list %}
+
+  <!-- Timeline -->
+  {% if events %}
+  <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:1.25rem;">📋 Ҳамаи дарсҳо</h2>
+  <div class="timeline">
+    {% set prev_date = namespace(val='') %}
+    {% for e in events %}
+    {% if e.scheduled_date != prev_date.val %}
+    {% set prev_date.val = e.scheduled_date %}
+    <div style="font-size:.8rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:.75rem;margin-top:{% if not loop.first %}1.5rem{% else %}0{% endif %};">
+      📆 {{ e.scheduled_date }}
+    </div>
+    {% endif %}
+    <div class="tl-item">
+      <div class="tl-dot"></div>
+      <div class="event-card" style="margin:0;">
+        <div class="event-time">
+          {{ e.scheduled_time }}<br>
+          <span style="font-size:.7rem;opacity:.8;">{{ e.duration_min }}д</span>
+        </div>
+        <div style="flex:1">
+          <h3 style="font-weight:800;margin-bottom:.3rem;">{{ e.title }}</h3>
+          {% if e.course_title %}<span class="badge badge-blue">📚 {{ e.course_title }}</span>{% endif %}
+          {% if e.lesson_title %}<span class="badge badge-yellow" style="margin-left:.4rem;">📖 {{ e.lesson_title }}</span>{% endif %}
+          {% if e.description %}<p style="font-size:.875rem;color:var(--muted);margin-top:.5rem;">{{ e.description }}</p>{% endif %}
+        </div>
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% else %}
+  <div style="text-align:center;padding:4rem 2rem;background:#fff;border-radius:16px;border:1px solid var(--border);">
+    <div style="font-size:4rem;margin-bottom:1rem;">📭</div>
+    <h2 style="font-weight:800;margin-bottom:.5rem;">Ҳанӯз дарсе нест</h2>
+    <p style="color:var(--muted);">Администратор дарсҳоро ба ҷадвал илова мекунад</p>
+  </div>
+  {% endif %}
+</div>
+
+<script>
+const eventDates = {{ event_dates | tojson }};
+let cur = new Date();
+
+function renderCal() {
+  const months = ['Январ','Феврал','Март','Апрел','Май','Июн','Июл','Август','Сентябр','Октябр','Ноябр','Декабр'];
+  const days = ['Яш','Ду','Се','Чо','Пн','Ҷм','Шн'];
+  document.getElementById('cal-month').textContent = months[cur.getMonth()] + ' ' + cur.getFullYear();
+  
+  const grid = document.getElementById('cal-grid');
+  grid.innerHTML = '';
+  days.forEach(d => { const el = document.createElement('div'); el.className='cal-head'; el.textContent=d; grid.appendChild(el); });
+  
+  const first = new Date(cur.getFullYear(), cur.getMonth(), 1);
+  const last = new Date(cur.getFullYear(), cur.getMonth()+1, 0);
+  const today = new Date();
+  
+  for (let i=0; i < (first.getDay()||7)-1; i++) {
+    const el = document.createElement('div'); el.className='cal-day other-month'; grid.appendChild(el);
+  }
+  for (let d=1; d<=last.getDate(); d++) {
+    const el = document.createElement('div'); el.className='cal-day';
+    const dateStr = `${cur.getFullYear()}-${String(cur.getMonth()+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+    if (eventDates.includes(dateStr)) el.classList.add('has-event');
+    if (d===today.getDate() && cur.getMonth()===today.getMonth() && cur.getFullYear()===today.getFullYear())
+      el.classList.add('today');
+    el.textContent = d;
+    if (el.classList.contains('has-event')) el.title = 'Дарс бор аст!';
+    grid.appendChild(el);
+  }
+}
+
+function prevMonth() { cur = new Date(cur.getFullYear(), cur.getMonth()-1, 1); renderCal(); }
+function nextMonth() { cur = new Date(cur.getFullYear(), cur.getMonth()+1, 1); renderCal(); }
+renderCal();
+</script>
+</body>
+</html>

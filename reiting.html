@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Рейтинг — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Edu<span>TJ</span></a>
+  <div class="nav-links">
+    <a href="/pupil">← Кабинет</a>
+    <span style="color:#64748b;font-size:.85rem;">🏆 Рейтинг</span>
+    <a href="/logout" style="color:#f87171">Баромад</a>
+  </div>
+</nav>
+
+<div style="max-width:800px;margin:2rem auto;padding:0 1rem;">
+  <div style="text-align:center;margin-bottom:2rem;">
+    <h1 style="font-size:2rem;font-weight:800;">🏆 Рейтинги Донишҷӯён</h1>
+    <p style="color:var(--muted);">Беҳтарин омӯзандагони моро бинед</p>
+  </div>
+
+  <!-- TOP 3 -->
+  {% if users|length >= 3 %}
+  <div style="display:flex;align-items:flex-end;justify-content:center;gap:1rem;margin-bottom:2.5rem;">
+    <!-- 2nd -->
+    <div style="text-align:center;flex:1;max-width:180px;">
+      <div style="font-size:3rem;">🥈</div>
+      <div style="background:#fff;border-radius:16px;padding:1rem;border:2px solid #e2e8f0;">
+        <div style="font-size:2rem;margin-bottom:.25rem;">👤</div>
+        <div style="font-weight:800;font-size:.9rem;">{{ users[1].full_name }}</div>
+        <div style="font-size:1.5rem;font-weight:900;color:#64748b;">{{ users[1].total_score }}</div>
+        <div style="font-size:.75rem;color:var(--muted);">балл</div>
+      </div>
+    </div>
+    <!-- 1st -->
+    <div style="text-align:center;flex:1;max-width:200px;">
+      <div style="font-size:3.5rem;">🥇</div>
+      <div style="background:linear-gradient(135deg,#fef3c7,#fde68a);border-radius:16px;padding:1.25rem;border:2px solid var(--accent);box-shadow:0 8px 24px rgba(245,158,11,.3);">
+        <div style="font-size:2.5rem;margin-bottom:.25rem;">👑</div>
+        <div style="font-weight:800;">{{ users[0].full_name }}</div>
+        <div style="font-size:2rem;font-weight:900;color:#92400e;">{{ users[0].total_score }}</div>
+        <div style="font-size:.75rem;color:#92400e;">балл</div>
+      </div>
+    </div>
+    <!-- 3rd -->
+    <div style="text-align:center;flex:1;max-width:180px;">
+      <div style="font-size:3rem;">🥉</div>
+      <div style="background:#fff;border-radius:16px;padding:1rem;border:2px solid #e2e8f0;">
+        <div style="font-size:2rem;margin-bottom:.25rem;">👤</div>
+        <div style="font-weight:800;font-size:.9rem;">{{ users[2].full_name }}</div>
+        <div style="font-size:1.5rem;font-weight:900;color:#92400e;">{{ users[2].total_score }}</div>
+        <div style="font-size:.75rem;color:var(--muted);">балл</div>
+      </div>
+    </div>
+  </div>
+  {% endif %}
+
+  <!-- FULL TABLE -->
+  <div class="rank-table">
+    <table>
+      <thead>
+        <tr>
+          <th style="width:60px;">Ҷой</th>
+          <th>Ном</th>
+          <th>Дарсҳо</th>
+          <th>Тестҳо</th>
+          <th>Балл</th>
+        </tr>
+      </thead>
+      <tbody>
+        {% for u in users %}
+        <tr class="rank-{{ loop.index }}">
+          <td>
+            <span class="medal">
+              {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+            </span>
+          </td>
+          <td>
+            <strong>{{ u.full_name }}</strong>
+            <br><small style="color:var(--muted);font-size:.75rem;">@{{ u.username }}</small>
+          </td>
+          <td><span class="badge badge-blue">{{ u.lessons_done }} дарс</span></td>
+          <td><span class="badge badge-green">{{ u.tests_done }} тест</span></td>
+          <td><strong style="font-size:1.1rem;color:var(--primary);">{{ u.total_score }}</strong></td>
+        </tr>
+        {% else %}
+        <tr><td colspan="5" style="text-align:center;color:var(--muted);padding:2rem;">Ҳанӯз касе нест</td></tr>
+        {% endfor %}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="alert alert-info" style="margin-top:1.5rem;">
+    💡 Балл = ҷавобҳои дурусти тестҳо. Ҳар тест гузаред — баллатон меафзояд!
+  </div>
+</div>
+</body>
+</html>

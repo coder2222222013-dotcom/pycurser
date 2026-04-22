@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Дохил шудан — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<style>
+  body { background:linear-gradient(135deg,#0f172a 0%,#1a56db 100%); min-height:100vh; display:flex; flex-direction:column; }
+  .login-wrap { flex:1; display:flex; align-items:center; justify-content:center; padding:2rem; }
+  .login-card { background:#fff; border-radius:24px; padding:2.5rem; width:100%; max-width:420px; box-shadow:0 30px 80px rgba(0,0,0,.3); }
+  .login-logo { text-align:center; font-size:2rem; font-weight:900; color:var(--primary); margin-bottom:.25rem; }
+  .login-logo span { color:var(--accent); }
+  .login-sub { text-align:center; color:var(--muted); font-size:.875rem; margin-bottom:2rem; }
+  .login-title { text-align:center; font-size:1.5rem; font-weight:800; margin-bottom:1.75rem; }
+  .hint-box { background:#f8fafc; border-radius:10px; padding:.85rem 1rem; margin-bottom:1.5rem; font-size:.8rem; color:var(--muted); border-left:3px solid var(--primary); }
+  .hint-box strong { color:var(--text); }
+  .login-footer { text-align:center; margin-top:1.5rem; font-size:.875rem; color:var(--muted); }
+  .show-pass { position:relative; }
+  .show-pass input { padding-right:2.5rem; }
+  .show-pass button { position:absolute; right:.75rem; top:50%; transform:translateY(-50%); background:none; border:none; cursor:pointer; font-size:1.1rem; color:var(--muted); }
+</style>
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Edu<span>TJ</span></a>
+  <div class="nav-links">
+    <a href="/">← Асосӣ</a>
+  </div>
+</nav>
+
+<div class="login-wrap">
+  <div class="login-card">
+    <div class="login-logo">Edu<span>TJ</span></div>
+    <div class="login-sub">Платформаи Омӯзишии Тоҷикистон</div>
+    <h2 class="login-title">Хуш омадед! 👋</h2>
+
+    {% if error %}
+    <div class="alert alert-danger">❌ {{ error }}</div>
+    {% endif %}
+
+    <div class="hint-box">
+      <strong>Демо:</strong> admin / admin123 &nbsp;|&nbsp; student1 / student123
+    </div>
+
+    <form method="POST" action="/login">
+      <div class="form-group">
+        <label for="username">👤 Логин (Номи корбар)</label>
+        <input type="text" id="username" name="username" placeholder="Логини худро ворид кунед" required autofocus>
+      </div>
+      <div class="form-group">
+        <label for="password">🔒 Парол</label>
+        <div class="show-pass">
+          <input type="password" id="password" name="password" placeholder="Паролро ворид кунед" required>
+          <button type="button" onclick="togglePass()">👁</button>
+        </div>
+      </div>
+      <button type="submit" class="btn btn-blue btn-full" style="padding:.9rem;font-size:1rem;">
+        Дохил шудан →
+      </button>
+    </form>
+
+    <div class="login-footer">
+      <a href="/">← Баргаштан ба асосӣ</a>
+    </div>
+  </div>
+</div>
+
+<script>
+function togglePass() {
+  const p = document.getElementById('password');
+  p.type = p.type === 'password' ? 'text' : 'password';
+}
+</script>
+</body>
+</html>

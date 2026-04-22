@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Кабинет — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.0/chart.umd.min.js"></script>
+</head>
+<body class="{{ 'dark-theme' if session.dark else '' }}">
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Edu<span>TJ</span></a>
+  <div class="nav-links">
+    <a href="/pupil">{{ t('cabinet') }}</a>
+    <a href="/notifications" style="position:relative;">🔔{% set uc=get_unread(session.user_id) %}{% if uc>0 %}<span class="notif-badge">{{uc}}</span>{% endif %}</a>
+    <a href="/toggle_dark">{{ '☀️' if session.dark else '🌙' }}</a>
+    <span style="display:flex;gap:.2rem;">
+      <a href="/set_lang/tg" class="btn btn-ghost btn-sm" style="{% if session.lang=='tg' %}background:var(--primary);color:#fff;{% endif %}">ТҶ</a>
+      <a href="/set_lang/ru" class="btn btn-ghost btn-sm" style="{% if session.lang=='ru' %}background:var(--primary);color:#fff;{% endif %}">РУ</a>
+      <a href="/set_lang/en" class="btn btn-ghost btn-sm" style="{% if session.lang=='en' %}background:var(--primary);color:#fff;{% endif %}">EN</a>
+    </span>
+    <a href="/logout" style="color:#f87171">{{ t('logout') }}</a>
+  </div>
+</nav>
+
+<div class="layout">
+  <aside class="sidebar">
+    <div style="padding:.5rem .75rem 1rem;border-bottom:1px solid rgba(255,255,255,.1);margin-bottom:.5rem;">
+      <div style="font-weight:800;color:#fff;font-size:1rem;">{{ session.full_name }}</div>
+      <div style="font-size:.7rem;color:#64748b;margin-top:.15rem;">
+        {% if user %}{{ user.xp or 0 }} XP{% endif %}
+      </div>
+      {% if user %}
+      <div class="xp-bar-wrap" style="margin-top:.4rem;">
+        <div class="xp-bar" style="width:{{ [((user.xp or 0) % 100), 100]|min }}%"></div>
+      </div>
+      {% endif %}
+    </div>
+    <span class="sidebar-title">{{ t('home') }}</span>
+    <a href="/pupil" class="{% if not view %}active{% endif %}"><span class="icon">🏠</span> {{ t('cabinet') }}</a>
+    <a href="/notifications"><span class="icon">🔔</span> {{ t('notifications') }}{% set uc=get_unread(session.user_id) %}{% if uc>0 %} <span class="notif-badge" style="position:static;margin-left:auto;">{{uc}}</span>{% endif %}</a>
+    <a href="/schedule"><span class="icon">📅</span> {{ t('schedule') }}</a>
+    <a href="/chat"><span class="icon">💬</span> {{ t('chat') }}</a>
+    <a href="/reiting"><span class="icon">🏆</span> {{ t('rating') }}</a>
+    <span class="sidebar-title">Омӯзиш</span>
+    <a href="/interpretator"><span class="icon">💻</span> {{ t('interpreter') }}</a>
+    <a href="/zadacha"><span class="icon">📋</span> {{ t('homework') }}</a>
+    <span class="sidebar-title">Забон</span>
+    <a href="/set_lang/tg"><span class="icon">🇹🇯</span> Тоҷикӣ</a>
+    <a href="/set_lang/ru"><span class="icon">🇷🇺</span> Русский</a>
+    <a href="/set_lang/en"><span class="icon">🇬🇧</span> English</a>
+    <a href="/logout" style="margin-top:auto;"><span class="icon">🚪</span> {{ t('logout') }}</a>
+  </aside>
+
+  <main class="main-content">
+
+  {% if view == 'lesson' %}
+  <!-- LESSON VIEW -->
+  <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;">
+    <a href="/course/{{ lesson.course_id }}" class="btn btn-ghost btn-sm">← {{ t('back') }}</a>
+    <h1 style="font-size:1.4rem;font-weight:800;">{{ lesson.title }}</h1>
+  </div>
+  {% if lesson.video_url %}
+  <div class="lesson-video">
+    {% if 'youtube' in lesson.video_url or 'youtu.be' in lesson.video_url %}
+      <iframe src="{{ lesson.video_url.replace('watch?v=','embed/').replace('youtu.be/','www.youtube.com/embed/') }}" frameborder="0" allowfullscreen></iframe>
+    {% else %}
+      <video controls><source src="{{ lesson.video_url }}"></video>
+    {% endif %}
+  </div>
+  {% endif %}
+  {% if lesson.content %}
+  <div class="lesson-content"><h3 style="margin-bottom:1rem;">📖 Маводи дарс</h3><p style="white-space:pre-wrap;">{{ lesson.content }}</p></div>
+  {% endif %}
+  <div style="display:flex;gap:1rem;flex-wrap:wrap;margin-bottom:2rem;">
+    <button onclick="markDone({{ lesson.id }})" class="btn btn-green" id="done-btn">✅ {{ t('lesson_done') }}</button>
+    {% if tests %}<a href="/test/{{ tests[0].id }}" class="btn btn-yellow">📝 {{ t('take_test') }}</a>{% endif %}
+    {% if tasks %}<a href="/homework/{{ tasks[0].id }}" class="btn btn-blue">📤 {{ t('homework') }}</a>{% endif %}
+  </div>
+  {% if all_lessons %}
+  <div style="background:var(--card);border-radius:14px;padding:1.25rem;border:1px solid var(--border);">
+    <h3 style="margin-bottom:1rem;font-size:1rem;">📚 Дарсҳо</h3>
+    {% for l in all_lessons %}
+    <a href="/lesson/{{ l.id }}" style="display:flex;align-items:center;gap:.75rem;padding:.6rem .5rem;border-radius:8px;text-decoration:none;color:var(--text);{% if l.id == lesson.id %}background:var(--bg);font-weight:700;{% endif %}">
+      <span style="width:28px;height:28px;border-radius:50%;background:{% if l.id == lesson.id %}var(--primary){% else %}var(--border){% endif %};color:{% if l.id == lesson.id %}#fff{% else %}var(--muted){% endif %};display:flex;align-items:center;justify-content:center;font-size:.8rem;font-weight:700;flex-shrink:0;">{{ loop.index }}</span>
+      {{ l.title }}
+    </a>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  {% elif view == 'course' %}
+  <!-- COURSE VIEW -->
+  <div style="display:flex;align-items:center;gap:.75rem;margin-bottom:1.5rem;">
+    <a href="/pupil" class="btn btn-ghost btn-sm">← {{ t('back') }}</a>
+    <h1 style="font-size:1.4rem;font-weight:800;">{{ course.title }}</h1>
+  </div>
+  <div style="background:var(--card);border-radius:16px;padding:1.5rem;border:1px solid var(--border);margin-bottom:2rem;">
+    <div class="course-meta" style="margin-bottom:1rem;">
+      <span>👨‍🏫 {{ course.instructor }}</span><span>⏱ {{ course.duration }}</span>
+      <span class="badge badge-blue">{{ course.level }}</span>
+    </div>
+    <p style="color:var(--muted);line-height:1.7;">{{ course.description }}</p>
+    <div style="margin-top:1rem;">
+      <div style="display:flex;justify-content:space-between;font-size:.875rem;margin-bottom:.4rem;">
+        <span>{{ t('progress') }}</span>
+        <span>{{ progress_map.values()|list|sum }} / {{ lessons|length }}</span>
+      </div>
+      <div class="progress-wrap"><div class="progress-bar" style="width:{% if lessons %}{{ (progress_map.values()|list|sum / lessons|length * 100)|int }}{% else %}0{% endif %}%"></div></div>
+    </div>
+    {% if lessons and progress_map.values()|list|sum == lessons|length %}
+    <a href="/sertifikat/{{ course.id }}" class="btn btn-yellow" style="margin-top:1rem;">🏆 {{ t('certificate') }}</a>
+    {% endif %}
+  </div>
+  <h3 style="margin-bottom:1rem;">📚 Дарсҳо</h3>
+  <div style="display:flex;flex-direction:column;gap:.75rem;">
+    {% for lesson in lessons %}
+    <a href="/lesson/{{ lesson.id }}" style="display:flex;align-items:center;gap:1rem;background:var(--card);border-radius:14px;padding:1rem 1.25rem;border:1px solid var(--border);text-decoration:none;color:var(--text);transition:.2s;" onmouseover="this.style.boxShadow='0 4px 16px rgba(0,0,0,.1)'" onmouseout="this.style.boxShadow=''">
+      <div style="width:40px;height:40px;border-radius:50%;background:{% if progress_map.get(lesson.id) %}var(--success){% else %}var(--primary){% endif %};color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800;flex-shrink:0;">
+        {% if progress_map.get(lesson.id) %}✓{% else %}{{ loop.index }}{% endif %}
+      </div>
+      <div style="flex:1"><div style="font-weight:700;">{{ lesson.title }}</div>{% if lesson.description %}<div style="font-size:.8rem;color:var(--muted);">{{ lesson.description[:70] }}</div>{% endif %}</div>
+      <span style="color:var(--muted);">▶</span>
+    </a>
+    {% else %}<div class="alert alert-info">Ҳанӯз дарсе нест.</div>{% endfor %}
+  </div>
+
+  {% else %}
+  <!-- DASHBOARD -->
+  <h1 style="font-size:1.6rem;font-weight:800;margin-bottom:.25rem;">{{ t('welcome') }}, {{ session.full_name }}! 👋</h1>
+  <p style="color:var(--muted);margin-bottom:1.5rem;">Омӯзишро идома диҳед</p>
+
+  <!-- XP & BADGES -->
+  {% if user %}
+  <div style="background:linear-gradient(135deg,var(--primary),#0ea5e9);border-radius:16px;padding:1.25rem;color:#fff;margin-bottom:1.5rem;display:flex;align-items:center;gap:1.5rem;flex-wrap:wrap;">
+    <div>
+      <div style="font-size:2.5rem;font-weight:900;">{{ user.xp or 0 }}</div>
+      <div style="opacity:.8;font-size:.875rem;">{{ t('points') }} накта</div>
+    </div>
+    <div style="flex:1;">
+      <div style="font-size:.8rem;margin-bottom:.3rem;opacity:.8;">Ба сатҳи бадӣ: {{ 100 - ((user.xp or 0) % 100) }} XP</div>
+      <div style="background:rgba(255,255,255,.2);border-radius:100px;height:8px;">
+        <div style="background:#fff;border-radius:100px;height:100%;width:{{ [((user.xp or 0) % 100), 100]|min }}%;transition:width 1s;"></div>
+      </div>
+    </div>
+    {% if badge_keys %}
+    <div>
+      {% for bk in badge_keys %}
+      <span class="badge-chip">{{ {'xp_100':'🥉 100 XP','xp_500':'🥈 500 XP','xp_1000':'🥇 1000 XP'}.get(bk, bk) }}</span>
+      {% endfor %}
+    </div>
+    {% endif %}
+  </div>
+  {% endif %}
+
+  <div class="stats-row">
+    <div class="stat-card"><span class="stat-icon">📚</span><div class="stat-num">{{ enrolled|length }}</div><div class="stat-label">{{ t('courses') }}</div></div>
+    <div class="stat-card"><span class="stat-icon">✅</span><div class="stat-num">{{ progress.values()|map(attribute='done')|sum if progress else 0 }}</div><div class="stat-label">{{ t('lessons') }}</div></div>
+    <div class="stat-card"><span class="stat-icon">📊</span><div class="stat-num">{{ user.xp if user else 0 }}</div><div class="stat-label">{{ t('points') }}</div></div>
+  </div>
+
+  <!-- ACTIVITY CHART -->
+  {% if activity %}
+  <div style="background:var(--card);border-radius:16px;padding:1.5rem;border:1px solid var(--border);margin-bottom:2rem;">
+    <h3 style="font-weight:800;margin-bottom:1rem;">📊 Фаъолияти ҳафтаина</h3>
+    <canvas id="actChart" height="80"></canvas>
+  </div>
+  {% endif %}
+
+  {% if enrolled %}
+  <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:1rem;">📖 {{ t('my_courses') }}</h2>
+  <div class="cards-grid" style="margin-bottom:2.5rem;">
+    {% for course in enrolled %}
+    <div class="course-card">
+      <div class="course-thumb">{% if course.image %}<img src="/static/uploads/images/{{ course.image }}" alt="">{% else %}🖥️{% endif %}</div>
+      <div class="course-body">
+        <span class="course-badge">{{ course.level }}</span>
+        <h3>{{ course.title }}</h3>
+        <div style="margin:1rem 0;">
+          <div style="display:flex;justify-content:space-between;font-size:.8rem;color:var(--muted);margin-bottom:.35rem;">
+            <span>{{ t('progress') }}</span><span>{{ progress[course.id].done }}/{{ progress[course.id].total }}</span>
+          </div>
+          <div class="progress-wrap"><div class="progress-bar" style="width:{{ progress[course.id].pct }}%"></div></div>
+        </div>
+        <a href="/course/{{ course.id }}" class="btn btn-blue btn-full">{{ t('continue') }} →</a>
+        {% if progress[course.id].pct == 100 %}
+        <a href="/sertifikat/{{ course.id }}" class="btn btn-yellow btn-full" style="margin-top:.5rem;">🏆 {{ t('certificate') }}</a>
+        {% endif %}
+      </div>
+    </div>
+    {% endfor %}
+  </div>
+  {% endif %}
+
+  <h2 style="font-size:1.2rem;font-weight:800;margin-bottom:1rem;">🆕 {{ t('all_courses') }}</h2>
+  <div class="cards-grid">
+    {% for course in all_courses %}
+    <div class="course-card">
+      <div class="course-thumb">{% if course.image %}<img src="/static/uploads/images/{{ course.image }}" alt="">{% else %}🖥️{% endif %}</div>
+      <div class="course-body">
+        <span class="course-badge">{{ course.level }}</span>
+        <h3>{{ course.title }}</h3>
+        <p>{{ course.description[:80] if course.description else '' }}</p>
+        <a href="/enroll/{{ course.id }}" class="btn btn-green btn-full">+ {{ t('enroll') }}</a>
+      </div>
+    </div>
+    {% else %}<div class="alert alert-info">Ҳанӯз курсе нест.</div>{% endfor %}
+  </div>
+  {% endif %}
+  </main>
+</div>
+
+<script>
+function markDone(lid) {
+  fetch('/complete_lesson/'+lid).then(r=>r.json()).then(()=>{
+    const b = document.getElementById('done-btn');
+    b.textContent='✅ Иҷро шуд! +20 XP'; b.disabled=true;
+  });
+}
+{% if activity %}
+const actData = {{ activity | tojson }};
+const labels = actData.map(a=>a.day).reverse();
+const data = actData.map(a=>a.cnt).reverse();
+new Chart(document.getElementById('actChart'), {
+  type:'bar',
+  data:{labels, datasets:[{label:'Тестҳо', data, backgroundColor:'rgba(26,86,219,.7)', borderRadius:6}]},
+  options:{responsive:true, plugins:{legend:{display:false}}, scales:{y:{beginAtZero:true, ticks:{stepSize:1}}}}
+});
+{% endif %}
+// Auto-refresh notification count
+setInterval(()=>{
+  fetch('/api/notif_count').then(r=>r.json()).then(d=>{
+    document.querySelectorAll('.notif-badge').forEach(el=>{ el.textContent=d.count; el.style.display=d.count>0?'inline-flex':'none'; });
+  });
+}, 15000);
+</script>
+</body>
+</html>

@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="tg">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1.0">
+<title>Тест — EduTJ</title>
+<link rel="stylesheet" href="/static/css/style.css">
+</head>
+<body>
+
+<nav class="nav">
+  <a href="/" class="nav-logo">Edu<span>TJ</span></a>
+  <div class="nav-links">
+    <a href="/pupil">← Кабинет</a>
+    <a href="/logout" style="color:#f87171">Баромад</a>
+  </div>
+</nav>
+
+<div style="max-width:720px;margin:2rem auto;padding:0 1rem;">
+
+{% if result %}
+<!-- RESULT -->
+<div class="result-box {% if result.passed %}pass{% else %}fail{% endif %} fade-up">
+  <div style="font-size:4rem;margin-bottom:.5rem;">{% if result.passed %}🏆{% else %}😔{% endif %}</div>
+  <h2>{% if result.passed %}Баракалла!{% else %}Кӯшиш кунед!{% endif %}</h2>
+  <p style="font-size:1.5rem;margin:1rem 0;font-weight:700;">{{ result.score }} / {{ result.total }}</p>
+  <p style="margin-bottom:1.5rem;opacity:.75;">
+    {% if result.passed %}Шумо тестро бо муваффақият гузаштед! ({{ (result.score/result.total*100)|int }}%)
+    {% else %}Шумо {{ (result.score/result.total*100)|int }}% гирифтед. Барои гузаштан 60% лозим аст.{% endif %}
+  </p>
+  <div style="display:flex;gap:1rem;justify-content:center;flex-wrap:wrap;">
+    <a href="/test/{{ test_id }}" class="btn btn-blue">🔄 Такрор</a>
+    <a href="/pupil" class="btn btn-ghost">← Кабинет</a>
+  </div>
+</div>
+
+{% elif test %}
+<!-- TEST FORM -->
+<div style="margin-bottom:1.5rem;">
+  <h1 style="font-size:1.5rem;font-weight:800;">📝 {{ test.title }}</h1>
+  {% if questions %}
+  <p style="color:var(--muted);">{{ questions|length }} савол • Барои гузаштан 60% лозим аст</p>
+  {% endif %}
+</div>
+
+<form method="POST" action="/submit_test/{{ test.id }}" id="test-form">
+  {% for q in questions %}
+  <div class="question-card fade-up" style="animation-delay:{{ loop.index0 * 0.05 }}s">
+    <h4>{{ loop.index }}. {{ q.question }}</h4>
+    {% for i, opt in enumerate(q.options) %}
+    {% if opt %}
+    <label class="option-label">
+      <input type="radio" name="q_{{ q.id }}" value="{{ i }}" required>
+      <span>{{ ['А','Б','В','Г'][i] }}) {{ opt }}</span>
+    </label>
+    {% endif %}
+    {% endfor %}
+  </div>
+  {% else %}
+  <div class="alert alert-info">Ин тест ҳанӯз саволе надорад.</div>
+  {% endfor %}
+
+  {% if questions %}
+  <div style="display:flex;gap:1rem;margin-top:1.5rem;">
+    <button type="submit" class="btn btn-blue" style="flex:1;padding:.9rem;font-size:1rem;">✓ Фиристодан</button>
+    <a href="/pupil" class="btn btn-ghost">Бекор</a>
+  </div>
+  {% endif %}
+</form>
+
+<!-- Timer -->
+{% if questions %}
+<div style="position:fixed;top:80px;right:1rem;background:#1e293b;color:#fff;border-radius:12px;padding:.75rem 1.25rem;font-family:'Fira Code',monospace;font-size:1.1rem;font-weight:700;" id="timer">⏱ 00:00</div>
+<script>
+let sec=0;
+setInterval(()=>{
+  sec++;
+  const m=String(Math.floor(sec/60)).padStart(2,'0');
+  const s=String(sec%60).padStart(2,'0');
+  document.getElementById('timer').textContent='⏱ '+m+':'+s;
+},1000);
+</script>
+{% endif %}
+
+{% endif %}
+</div>
+</body>
+</html>
